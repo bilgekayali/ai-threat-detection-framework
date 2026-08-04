@@ -28,10 +28,10 @@ from ai_threat_detection.scoring import (
 )
 from ai_threat_detection.validation import (
     CATEGORICAL_FEATURES,
-    DataValidationError,
     FEATURE_COLUMNS,
     LABEL_COLUMN,
     NUMERIC_FEATURES,
+    DataValidationError,
     validate_alerts,
 )
 
