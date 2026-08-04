@@ -1,0 +1,52 @@
+name: CI
+
+"on":
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e ".[dev]"
+
+      - name: Lint
+        run: ruff check .
+
+      - name: Test
+        run: pytest
+
+      - name: Evaluate full synthetic dataset
+        run: |
+          ai-threat-eval \
+            --data synthetic_alerts.csv \
+            --output-dir /tmp/ai-threat-evidence
+          test -s /tmp/ai-threat-evidence/evaluation_report.json
+
+      - name: Generate and evaluate a fresh scenario
+        run: |
+          ai-threat-generate \
+            --rows 1000 \
+            --seed 42 \
+            --out /tmp/generated-alerts.csv
+          ai-threat-eval \
+            --data /tmp/generated-alerts.csv \
+            --output-dir /tmp/generated-evidence
+          test -s /tmp/generated-evidence/evaluation_report.json
