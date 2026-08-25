@@ -13,12 +13,20 @@ def test_evaluation_produces_holdout_metrics_and_evidence(synthetic_frame):
     assert report["evaluation"]["split_strategy"] == "chronological_holdout"
     assert report["evaluation"]["training_rows"] == 90
     assert report["evaluation"]["test_rows"] == 30
+    assert report["schema_version"] == "ai-threat-detection.evaluation-report.v1"
+    assert report["package_version"] == "1.0.0"
+    assert report["runtime"]["scikit_learn"]
     assert set(report["holdout_metrics"]) == {
         "rule_baseline",
         "supervised_model",
         "blended_score",
     }
     assert artifacts.scored_alerts["blend_score"].between(0, 1).all()
+    assert artifacts.scored_alerts["evaluation_partition"].value_counts().to_dict() == {
+        "train": 90,
+        "holdout": 30,
+    }
+    assert 0 <= report["holdout_metrics"]["blended_score"]["brier_score"] <= 1
     assert artifacts.feature_importance["importance"].sum() == pytest.approx(1.0)
 
 

@@ -1,0 +1,37 @@
+{
+  "schema_version": "ai-threat-detection.release-contract.v1",
+  "current_release_version": "1.0.0",
+  "release_stage": "stable-reference",
+  "public_api": {
+    "symbol_count": 6,
+    "sha256": "38d5438abc50e34397377712ff07052cebf1f4d574efdea83635bd26a6526bd7"
+  },
+  "schema_set": {
+    "file_count": 5,
+    "sha256": "0927b3657de0ed36567f69108d4651085d1de665197ba40a7b45cd5020fda48b"
+  },
+  "reference_dataset": {
+    "path": "synthetic_alerts.csv",
+    "row_count": 1000,
+    "sha256": "7794e260b4f6358e47b8f03c9a6b50486a892e41c0ca6858a114a3a90b5f50eb"
+  },
+  "stable_cli_commands": [
+    "ai-threat-eval",
+    "ai-threat-generate"
+  ],
+  "supported_python": [
+    "3.10",
+    "3.11",
+    "3.12"
+  ],
+  "repository_governance_enforcement_verified": false,
+  "requires_human_release_decision": true,
+  "source_promotion_only": true,
+  "non_claims": {
+    "production_detection_performance_determined": false,
+    "production_readiness_determined": false,
+    "regulatory_compliance_determined": false,
+    "certification_determined": false,
+    "autonomous_containment_authorised": false
+  }
+}

@@ -4,6 +4,14 @@ An explainable alert-risk evaluation framework for synthetic security telemetry.
 compares a transparent rule baseline with a supervised model, produces analyst-facing
 reason codes and writes reproducible evidence artifacts.
 
+Current source boundary: **v1.0.0 stable research reference**.
+
+> [!IMPORTANT]
+> Stable package/API status does not establish production detection performance,
+> production readiness, regulatory compliance, certification or authority for
+> autonomous containment. No `v1.0.0` tag, GitHub Release, package publication or
+> deployment is created by the source-level stable promotion.
+
 This repository is a public research reference. It contains no customer data, bank
 configuration, detection rule or production architecture. Scores are intended to
 support human triage, never autonomous containment.
@@ -22,9 +30,12 @@ The current implementation provides:
 - a deterministic random-forest model with categorical event handling
 - a chronological holdout that reduces future-to-past leakage
 - rule, model and blended holdout metrics
+- Brier score and explicit train/holdout partition labels
 - per-alert risk bands and reason codes
-- dataset hashing and machine-readable evaluation evidence
-- automated linting, tests, coverage and a full-dataset smoke run
+- dataset hashing and a deterministic artifact-hash manifest
+- deterministic CycloneDX dependency SBOM generation for release evidence
+- five public Draft 2020-12 input/output schemas
+- automated linting, tests, coverage, CodeQL and clean-wheel release gates
 
 ## Evaluation flow
 
@@ -84,10 +95,27 @@ python ai_risk_model.py --data synthetic_alerts.csv --output-dir artifacts/lates
 | scored_alerts.csv | Rule, model and blended scores; risk bands; prediction and reason codes |
 | evaluation_report.json | Dataset digest, split configuration, metrics, confusion matrices and limitations |
 | feature_importance.csv | Ranked global feature importance from the fitted model |
+| evidence_manifest.json | Exact artifact hashes, schema identities and package/source binding |
 
 The report compares the rule baseline, supervised model and blended score using
 precision, recall, F1, ROC AUC, average precision and a confusion matrix. Metrics are
-calculated only on the final chronological holdout window.
+calculated only on the final chronological holdout window. Brier score provides a
+bounded probability-error measure, and each scored row is marked `train` or `holdout`.
+
+## Stable v1 contract
+
+The v1 compatibility boundary covers the six names exported through
+`ai_threat_detection.__all__`, the two installed CLI commands, the normalized input
+contract and the exact public output schemas. The committed API/schema/reference-data
+fingerprints are verified by:
+
+~~~bash
+python tools/release_contract.py --emit --verify
+~~~
+
+See [Compatibility Policy](COMPATIBILITY.md), [Model Card](docs/MODEL_CARD.md),
+[Dataset Card](docs/DATASET_CARD.md), [Threat Model](docs/THREAT_MODEL.md) and
+[Release Process](docs/RELEASE_PROCESS.md).
 
 ## Development
 
@@ -98,8 +126,9 @@ pytest
 ~~~
 
 The test suite covers validation failures, score boundaries, explanations,
-reproducibility and CLI artifact generation. CI also evaluates the repository's full
-synthetic dataset as a smoke test.
+reproducibility, schema contracts and CLI artifact generation. CI runs on Python 3.10,
+3.11 and 3.12, evaluates the full synthetic dataset and builds a clean-wheel smoke
+environment. All third-party workflow actions are pinned to exact commits.
 
 ## Method and control boundary
 
@@ -116,7 +145,11 @@ limitations and framework mapping.
 ~~~text
 .
 ├── .github/workflows/ci.yml
-├── docs/METHODOLOGY.md
+├── .github/workflows/codeql.yml
+├── .github/workflows/stable-release.yml
+├── docs/
+├── release/
+├── schemas/
 ├── src/ai_threat_detection/
 │   ├── cli.py
 │   ├── config.py
@@ -125,6 +158,9 @@ limitations and framework mapping.
 │   ├── scoring.py
 │   └── validation.py
 ├── tests/
+├── tools/
+│   ├── build_sbom.py
+│   └── release_contract.py
 ├── ai_risk_model.py
 ├── synthetic_alerts.csv
 ├── Architecture Diagram.png

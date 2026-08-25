@@ -24,7 +24,7 @@ The evaluator requires:
 | --- | --- |
 | timestamp | Parseable timestamp; normalised to UTC |
 | user_id, asset_id | Non-negative integer identifiers |
-| event_type | Non-empty categorical value |
+| event_type | One of file, login, network, process or registry |
 | anomaly_score | Numeric value from 0 to 1 |
 | off_hours | Binary value |
 | failed_logins_24h | Non-negative numeric count |
@@ -62,7 +62,7 @@ Reason codes expose observable rule signals:
 
 The model is a random forest with 300 estimators, balanced class weights, a minimum leaf
 size of three and a fixed random seed. Numeric features pass through unchanged.
-event_type is one-hot encoded with unknown categories ignored at inference time.
+`event_type` is one-hot encoded after the closed v1 event taxonomy has been validated.
 
 The model deliberately excludes synthetic user and asset identifiers. Treating those
 identifiers as predictive features could encourage memorisation and reduce portability.
@@ -81,8 +81,10 @@ The same holdout window is used to compare:
 3. a blend with 60% model weight and 40% rule weight.
 
 The default binary decision threshold is 0.50. The report includes precision, recall,
-F1, ROC AUC, average precision and the four confusion-matrix counts. ROC AUC and average
-precision are reported as null if the holdout contains only one class.
+F1, ROC AUC, average precision, Brier score and the four confusion-matrix counts. ROC
+AUC and average precision are reported as null if the holdout contains only one class.
+Every scored row is marked `train` or `holdout` so in-sample probabilities cannot be
+silently presented as holdout evidence.
 
 ## Reproducibility and evidence
 
@@ -93,11 +95,18 @@ Each run records:
 - chronological split sizes;
 - model configuration and random seed;
 - feature list and blend weights;
+- package, Python, NumPy, pandas and scikit-learn versions;
 - holdout metrics and confusion matrices;
 - explicit limitations.
 
 Outputs use stable field ordering and a fixed model seed. Model execution is restricted
-to one worker to reduce nondeterministic parallel behaviour.
+to one worker to reduce nondeterministic parallel behaviour. `evidence_manifest.json`
+binds the three primary evidence artifacts to exact SHA-256 digests and public schema
+identities. Exact numeric reproducibility is scoped to the runtime versions recorded in
+the report; compatible dependency updates can change floating-point model output.
+
+The normalized input and generated evidence contracts are published as Draft 2020-12
+JSON Schemas under `schemas/` and are checked in CI.
 
 ## Governance boundary
 

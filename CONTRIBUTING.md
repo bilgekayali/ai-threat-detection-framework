@@ -18,6 +18,10 @@ pytest
 
 - Keep changes focused and explain the security or evaluation impact.
 - Add or update tests for behavioural changes.
+- Update public schemas and compatibility notes for contract changes.
+- Run `python tools/release_contract.py --emit --verify`; an intentional API, schema or
+  reference-dataset change must update the pinned release contract in the same pull
+  request and follow the versioning policy.
 - Do not commit real telemetry, credentials, internal architecture or customer data.
 - Distinguish measured results from assumptions and proposed future work.
 - Preserve deterministic behaviour unless a change explicitly documents why it cannot.

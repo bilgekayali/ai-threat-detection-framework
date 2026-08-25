@@ -4,15 +4,20 @@ from __future__ import annotations
 
 import hashlib
 import json
+import platform
 from dataclasses import dataclass
+from importlib.metadata import PackageNotFoundError, version
 from pathlib import Path
 from typing import Any
 
+import numpy as np
 import pandas as pd
+import sklearn
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import (
     average_precision_score,
+    brier_score_loss,
     confusion_matrix,
     precision_recall_fscore_support,
     roc_auc_score,
@@ -34,6 +39,13 @@ from ai_threat_detection.validation import (
     DataValidationError,
     validate_alerts,
 )
+from ai_threat_detection.version import PACKAGE_VERSION
+
+REPORT_SCHEMA_VERSION = "ai-threat-detection.evaluation-report.v1"
+INPUT_SCHEMA_VERSION = "ai-threat-detection.alert-input.v1"
+SCORED_ALERT_SCHEMA_VERSION = "ai-threat-detection.scored-alert.v1"
+FEATURE_IMPORTANCE_SCHEMA_VERSION = "ai-threat-detection.feature-importance.v1"
+EVIDENCE_MANIFEST_SCHEMA_VERSION = "ai-threat-detection.evidence-manifest.v1"
 
 
 @dataclass(frozen=True)
@@ -107,6 +119,7 @@ def _binary_metrics(
             if has_both_classes
             else None
         ),
+        "brier_score": round(float(brier_score_loss(labels, probabilities)), 6),
         "confusion_matrix": {
             "true_negative": int(matrix[0, 0]),
             "false_positive": int(matrix[0, 1]),
@@ -121,6 +134,20 @@ def _positive_probability(model: Pipeline, features: pd.DataFrame) -> pd.Series:
     positive_index = list(classifier.classes_).index(1)
     probabilities = model.predict_proba(features)[:, positive_index]
     return pd.Series(probabilities, index=features.index, dtype="float64")
+
+
+def _runtime_versions() -> dict[str, str]:
+    try:
+        package_version = version("ai-threat-detection-framework")
+    except PackageNotFoundError:
+        package_version = PACKAGE_VERSION
+    return {
+        "python": platform.python_version(),
+        "ai_threat_detection_framework": package_version,
+        "numpy": np.__version__,
+        "pandas": pd.__version__,
+        "scikit_learn": sklearn.__version__,
+    }
 
 
 def evaluate_alerts(
@@ -155,6 +182,7 @@ def evaluate_alerts(
         evaluation.model_weight * model_probabilities
         + (1 - evaluation.model_weight) * rule_scores
     ).clip(0, 1)
+    test_slice = slice(split_index, None)
 
     scored = alerts.copy()
     scored["rule_score"] = rule_scores
@@ -167,6 +195,8 @@ def evaluate_alerts(
         blend_scores >= evaluation.decision_threshold
     ).astype("int8")
     scored["reason_codes"] = build_reason_codes(alerts)
+    scored["evaluation_partition"] = "train"
+    scored.loc[test_slice, "evaluation_partition"] = "holdout"
 
     feature_names = model.named_steps["preprocess"].get_feature_names_out()
     importances = model.named_steps["classifier"].feature_importances_
@@ -176,10 +206,11 @@ def evaluate_alerts(
         .reset_index(drop=True)
     )
 
-    test_slice = slice(split_index, None)
     test_labels = alerts.loc[test_slice, LABEL_COLUMN]
     report: dict[str, Any] = {
-        "schema_version": "1.0",
+        "schema_version": REPORT_SCHEMA_VERSION,
+        "package_version": PACKAGE_VERSION,
+        "input_schema_version": INPUT_SCHEMA_VERSION,
         "dataset": {
             "source_sha256": source_sha256,
             "rows": len(alerts),
@@ -187,6 +218,7 @@ def evaluate_alerts(
             "first_event_utc": alerts["timestamp"].min().isoformat(),
             "last_event_utc": alerts["timestamp"].max().isoformat(),
         },
+        "runtime": _runtime_versions(),
         "evaluation": {
             "split_strategy": "chronological_holdout",
             "training_rows": len(train),
@@ -233,21 +265,80 @@ def evaluate_alerts(
             "Scores support analyst triage and must not trigger autonomous containment.",
             "Thresholds require validation against each organisation's risk appetite.",
         ],
+        "non_claims": {
+            "production_detection_performance_determined": False,
+            "production_readiness_determined": False,
+            "regulatory_compliance_determined": False,
+            "autonomous_containment_authorised": False,
+        },
     }
     return EvaluationArtifacts(scored, feature_importance, report)
+
+
+def _artifact_entry(
+    path: Path,
+    output_dir: Path,
+    media_type: str,
+    schema_version: str,
+    rows: int | None = None,
+) -> dict[str, Any]:
+    entry: dict[str, Any] = {
+        "path": path.relative_to(output_dir).as_posix(),
+        "media_type": media_type,
+        "schema_version": schema_version,
+        "sha256": sha256_file(path),
+        "bytes": path.stat().st_size,
+    }
+    if rows is not None:
+        entry["rows"] = rows
+    return entry
 
 
 def write_artifacts(artifacts: EvaluationArtifacts, output_dir: Path) -> None:
     """Write deterministic CSV and JSON evidence artifacts."""
 
     output_dir.mkdir(parents=True, exist_ok=True)
-    artifacts.scored_alerts.to_csv(output_dir / "scored_alerts.csv", index=False)
+    scored_path = output_dir / "scored_alerts.csv"
+    importance_path = output_dir / "feature_importance.csv"
+    artifacts.scored_alerts.to_csv(scored_path, index=False)
     artifacts.feature_importance.to_csv(
-        output_dir / "feature_importance.csv",
+        importance_path,
         index=False,
     )
     report_path = output_dir / "evaluation_report.json"
     report_path.write_text(
         json.dumps(artifacts.report, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    manifest = {
+        "schema_version": EVIDENCE_MANIFEST_SCHEMA_VERSION,
+        "package_version": PACKAGE_VERSION,
+        "source_sha256": artifacts.report["dataset"]["source_sha256"],
+        "artifacts": [
+            _artifact_entry(
+                scored_path,
+                output_dir,
+                "text/csv",
+                SCORED_ALERT_SCHEMA_VERSION,
+                len(artifacts.scored_alerts),
+            ),
+            _artifact_entry(
+                importance_path,
+                output_dir,
+                "text/csv",
+                FEATURE_IMPORTANCE_SCHEMA_VERSION,
+                len(artifacts.feature_importance),
+            ),
+            _artifact_entry(
+                report_path,
+                output_dir,
+                "application/json",
+                REPORT_SCHEMA_VERSION,
+            ),
+        ],
+        "non_claims": artifacts.report["non_claims"],
+    }
+    (output_dir / "evidence_manifest.json").write_text(
+        json.dumps(manifest, indent=2, sort_keys=True) + "\n",
         encoding="utf-8",
     )

@@ -1,0 +1,47 @@
+name: Stable Release Gate
+
+on:
+  push:
+    branches: [main, "agent/**"]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  stable-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: "3.12"
+          cache: pip
+      - name: Install stable candidate and test dependencies
+        run: python -m pip install -e ".[dev]"
+      - name: Verify frozen release contract
+        run: python tools/release_contract.py --emit --verify
+      - name: Build deterministic dependency SBOM
+        run: |
+          python tools/build_sbom.py --output /tmp/ai-threat-dependency-sbom.json
+          test -s /tmp/ai-threat-dependency-sbom.json
+      - name: Build stable-reference wheel
+        run: python -m build --wheel
+      - name: Clean-wheel stable-reference smoke
+        run: |
+          python -m venv /tmp/ai-threat-stable
+          /tmp/ai-threat-stable/bin/python -m pip install dist/*.whl
+          /tmp/ai-threat-stable/bin/python - <<'PY'
+          import ai_threat_detection
+
+          assert ai_threat_detection.__version__ == "1.0.0"
+          assert len(ai_threat_detection.__all__) == 6
+          print(ai_threat_detection.__version__)
+          PY
+          /tmp/ai-threat-stable/bin/ai-threat-eval \
+            --data synthetic_alerts.csv \
+            --output-dir /tmp/ai-threat-stable-evidence
+          test -s /tmp/ai-threat-stable-evidence/scored_alerts.csv
+          test -s /tmp/ai-threat-stable-evidence/feature_importance.csv
+          test -s /tmp/ai-threat-stable-evidence/evaluation_report.json
+          test -s /tmp/ai-threat-stable-evidence/evidence_manifest.json
