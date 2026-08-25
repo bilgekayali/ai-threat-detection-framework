@@ -1,0 +1,52 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/bilgekayali/ai-threat-detection-framework/schemas/scored-alert.schema.json",
+  "title": "AI Threat Detection Scored Alert v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "timestamp",
+    "user_id",
+    "asset_id",
+    "event_type",
+    "anomaly_score",
+    "off_hours",
+    "failed_logins_24h",
+    "geo_distance_km",
+    "proc_injection_flag",
+    "label",
+    "rule_score",
+    "rule_risk",
+    "model_probability",
+    "model_risk",
+    "blend_score",
+    "blend_risk",
+    "predicted_label",
+    "reason_codes",
+    "evaluation_partition"
+  ],
+  "properties": {
+    "timestamp": {"type": "string", "format": "date-time"},
+    "user_id": {"type": "integer", "minimum": 0},
+    "asset_id": {"type": "integer", "minimum": 0},
+    "event_type": {
+      "type": "string",
+      "enum": ["file", "login", "network", "process", "registry"]
+    },
+    "anomaly_score": {"type": "number", "minimum": 0, "maximum": 1},
+    "off_hours": {"type": "integer", "enum": [0, 1]},
+    "failed_logins_24h": {"type": "number", "minimum": 0},
+    "geo_distance_km": {"type": "number", "minimum": 0},
+    "proc_injection_flag": {"type": "integer", "enum": [0, 1]},
+    "label": {"type": "integer", "enum": [0, 1]},
+    "rule_score": {"type": "number", "minimum": 0, "maximum": 1},
+    "rule_risk": {"type": "string", "enum": ["Low", "Medium", "High"]},
+    "model_probability": {"type": "number", "minimum": 0, "maximum": 1},
+    "model_risk": {"type": "string", "enum": ["Low", "Medium", "High"]},
+    "blend_score": {"type": "number", "minimum": 0, "maximum": 1},
+    "blend_risk": {"type": "string", "enum": ["Low", "Medium", "High"]},
+    "predicted_label": {"type": "integer", "enum": [0, 1]},
+    "reason_codes": {"type": "string", "minLength": 1},
+    "evaluation_partition": {"type": "string", "enum": ["train", "holdout"]}
+  }
+}

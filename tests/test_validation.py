@@ -32,6 +32,14 @@ def test_validation_rejects_empty_data(synthetic_frame):
         validate_alerts(synthetic_frame.iloc[:0])
 
 
+def test_validation_rejects_unsupported_event_type(synthetic_frame):
+    invalid = synthetic_frame.copy()
+    invalid.loc[0, "event_type"] = "cloud_control_plane"
+
+    with pytest.raises(DataValidationError, match="unsupported values"):
+        validate_alerts(invalid)
+
+
 @pytest.mark.parametrize(
     ("column", "value", "message"),
     [
@@ -50,6 +58,8 @@ def test_validation_rejects_invalid_field_values(
     message,
 ):
     invalid = synthetic_frame.copy()
+    if column == "timestamp":
+        invalid[column] = invalid[column].astype("object")
     invalid.loc[0, column] = value
 
     with pytest.raises(DataValidationError, match=message):

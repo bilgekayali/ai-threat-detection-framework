@@ -1,0 +1,12 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/bilgekayali/ai-threat-detection-framework/schemas/feature-importance.schema.json",
+  "title": "AI Threat Detection Feature Importance Row v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["feature", "importance"],
+  "properties": {
+    "feature": {"type": "string", "minLength": 1},
+    "importance": {"type": "number", "minimum": 0, "maximum": 1}
+  }
+}

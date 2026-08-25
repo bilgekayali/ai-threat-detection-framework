@@ -13,8 +13,17 @@ def test_cli_writes_all_artifacts(tmp_path, synthetic_frame):
     assert result == 0
     assert (output / "scored_alerts.csv").is_file()
     assert (output / "feature_importance.csv").is_file()
+    assert (output / "evidence_manifest.json").is_file()
     report = json.loads((output / "evaluation_report.json").read_text())
     assert report["dataset"]["rows"] == 120
+
+    manifest = json.loads((output / "evidence_manifest.json").read_text())
+    assert manifest["package_version"] == "1.0.0"
+    assert [item["path"] for item in manifest["artifacts"]] == [
+        "scored_alerts.csv",
+        "feature_importance.csv",
+        "evaluation_report.json",
+    ]
 
 
 def test_cli_returns_error_for_missing_source(tmp_path):

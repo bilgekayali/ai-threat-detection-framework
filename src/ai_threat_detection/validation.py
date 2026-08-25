@@ -14,6 +14,7 @@ NUMERIC_FEATURES = (
     "proc_injection_flag",
 )
 CATEGORICAL_FEATURES = ("event_type",)
+ALLOWED_EVENT_TYPES = frozenset({"file", "login", "network", "process", "registry"})
 LABEL_COLUMN = "label"
 FEATURE_COLUMNS = (*NUMERIC_FEATURES, *CATEGORICAL_FEATURES)
 REQUIRED_COLUMNS = (
@@ -47,6 +48,7 @@ def validate_alerts(data: pd.DataFrame) -> pd.DataFrame:
     frame[TIMESTAMP_COLUMN] = pd.to_datetime(
         frame[TIMESTAMP_COLUMN],
         errors="coerce",
+        format="mixed",
         utc=True,
     )
     if frame[TIMESTAMP_COLUMN].isna().any():
@@ -66,6 +68,11 @@ def validate_alerts(data: pd.DataFrame) -> pd.DataFrame:
     frame["event_type"] = frame["event_type"].astype("string").str.strip()
     if frame["event_type"].isna().any() or (frame["event_type"] == "").any():
         raise DataValidationError("event_type contains missing or blank values.")
+    unknown_event_types = sorted(set(frame["event_type"]) - ALLOWED_EVENT_TYPES)
+    if unknown_event_types:
+        raise DataValidationError(
+            "event_type contains unsupported values: " + ", ".join(unknown_event_types)
+        )
 
     if not frame["anomaly_score"].between(0, 1).all():
         raise DataValidationError("anomaly_score must be between 0 and 1.")

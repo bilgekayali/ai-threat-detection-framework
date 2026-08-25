@@ -1,0 +1,51 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/bilgekayali/ai-threat-detection-framework/schemas/evidence-manifest.schema.json",
+  "title": "AI Threat Detection Evidence Manifest v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "package_version", "source_sha256", "artifacts", "non_claims"],
+  "properties": {
+    "schema_version": {"const": "ai-threat-detection.evidence-manifest.v1"},
+    "package_version": {"const": "1.0.0"},
+    "source_sha256": {
+      "anyOf": [
+        {"type": "null"},
+        {"type": "string", "pattern": "^[0-9a-f]{64}$"}
+      ]
+    },
+    "artifacts": {
+      "type": "array",
+      "minItems": 3,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["path", "media_type", "schema_version", "sha256", "bytes"],
+        "properties": {
+          "path": {"type": "string", "pattern": "^[^/]+$"},
+          "media_type": {"type": "string", "enum": ["application/json", "text/csv"]},
+          "schema_version": {"type": "string", "pattern": "^ai-threat-detection\\.[a-z-]+\\.v1$"},
+          "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+          "bytes": {"type": "integer", "minimum": 1},
+          "rows": {"type": "integer", "minimum": 1}
+        }
+      }
+    },
+    "non_claims": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "production_detection_performance_determined",
+        "production_readiness_determined",
+        "regulatory_compliance_determined",
+        "autonomous_containment_authorised"
+      ],
+      "properties": {
+        "production_detection_performance_determined": {"const": false},
+        "production_readiness_determined": {"const": false},
+        "regulatory_compliance_determined": {"const": false},
+        "autonomous_containment_authorised": {"const": false}
+      }
+    }
+  }
+}

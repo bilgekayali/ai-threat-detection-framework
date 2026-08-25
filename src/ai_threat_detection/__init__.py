@@ -3,6 +3,7 @@
 from ai_threat_detection.config import EvaluationConfig, RuleConfig
 from ai_threat_detection.evaluation import EvaluationArtifacts, evaluate_alerts
 from ai_threat_detection.validation import DataValidationError, validate_alerts
+from ai_threat_detection.version import PACKAGE_VERSION
 
 __all__ = [
     "DataValidationError",
@@ -13,4 +14,4 @@ __all__ = [
     "validate_alerts",
 ]
 
-__version__ = "1.0.0"
+__version__ = PACKAGE_VERSION

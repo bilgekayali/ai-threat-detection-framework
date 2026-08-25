@@ -1,0 +1,16 @@
+{
+  "schema_version": "ai-threat-detection.repository-governance.v1",
+  "default_branch": "main",
+  "pull_request_required": true,
+  "required_approvals": 0,
+  "conversation_resolution_required": true,
+  "force_pushes_allowed": false,
+  "branch_deletion_allowed": false,
+  "required_workflow_names": [
+    "CI",
+    "CodeQL",
+    "Stable Release Gate"
+  ],
+  "enforcement_verified": false,
+  "verification_note": "Reference policy only. Live GitHub branch protection or ruleset enforcement is not inferred from repository files and must be verified separately."
+}
