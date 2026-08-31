@@ -26,7 +26,12 @@
   ],
   "repository_governance_enforcement_verified": false,
   "requires_human_release_decision": true,
-  "source_promotion_only": true,
+  "source_promotion_only": false,
+  "github_release_authorized": true,
+  "package_publication_authorized": false,
+  "container_publication_authorized": false,
+  "deployment_authorized": false,
+  "independent_review_completed": false,
   "non_claims": {
     "production_detection_performance_determined": false,
     "production_readiness_determined": false,

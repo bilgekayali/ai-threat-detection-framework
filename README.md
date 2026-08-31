@@ -9,8 +9,13 @@ Current source boundary: **v1.0.0 stable research reference**.
 > [!IMPORTANT]
 > Stable package/API status does not establish production detection performance,
 > production readiness, regulatory compliance, certification or authority for
-> autonomous containment. No `v1.0.0` tag, GitHub Release, package publication or
-> deployment is created by the source-level stable promotion.
+> autonomous containment. Owner-authorized GitHub publication is gated on successful
+> CI, CodeQL and Stable Release Gate runs on the exact `main` commit. Package-index
+> publication and deployment remain out of scope.
+
+The immutable release, once published, is available at
+[v1.0.0](https://github.com/bilgekayali/ai-threat-detection-framework/releases/tag/v1.0.0).
+See [Release Process](docs/RELEASE_PROCESS.md) for the publication boundary.
 
 This repository is a public research reference. It contains no customer data, bank
 configuration, detection rule or production architecture. Scores are intended to

@@ -173,6 +173,35 @@ def _verify_documentation() -> None:
         )
 
 
+def _verify_publication_decision(manifest: dict) -> None:
+    if manifest.get("requires_human_release_decision") is not True:
+        raise SystemExit("tagging and publication must remain explicit human decisions")
+    if (
+        manifest.get("source_promotion_only") is not False
+        or manifest.get("github_release_authorized") is not True
+    ):
+        raise SystemExit("v1.0.0 GitHub publication requires explicit owner authorization")
+    for field in (
+        "package_publication_authorized", "container_publication_authorized",
+        "deployment_authorized", "independent_review_completed",
+    ):
+        if manifest.get(field) is not False:
+            raise SystemExit(f"GitHub release approval does not authorize or establish {field}")
+    policy = _load_json(ROOT / "release" / "publish-policy.json")
+    if (
+        policy.get("schema_version") != "github-release-policy.v1"
+        or policy.get("authorized") is not True
+        or policy.get("repository") != "bilgekayali/ai-threat-detection-framework"
+        or policy.get("release_version") != manifest.get("current_release_version")
+        or policy.get("required_workflows") != {
+            ".github/workflows/ci.yml": "CI",
+            ".github/workflows/codeql.yml": "CodeQL",
+            ".github/workflows/stable-release.yml": "Stable Release Gate",
+        }
+    ):
+        raise SystemExit("publication policy must bind the exact version, repository and gates")
+
+
 def verify() -> dict[str, dict[str, object]]:
     manifest = _load_json(MANIFEST_PATH)
     computed = compute_fingerprints()
@@ -186,10 +215,7 @@ def verify() -> dict[str, dict[str, object]]:
 
     if manifest.get("schema_version") != "ai-threat-detection.release-contract.v1":
         raise SystemExit("unsupported release-contract schema version")
-    if manifest.get("requires_human_release_decision") is not True:
-        raise SystemExit("tagging and publication must remain explicit human decisions")
-    if manifest.get("source_promotion_only") is not True:
-        raise SystemExit("v1 hardening must remain a source-only promotion")
+    _verify_publication_decision(manifest)
     non_claims = manifest.get("non_claims")
     if (
         not isinstance(non_claims, dict)

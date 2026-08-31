@@ -3,7 +3,7 @@
 All notable changes to this project are documented here. The project follows Semantic
 Versioning for the stable surface defined in `COMPATIBILITY.md`.
 
-## 1.0.0 — Stable reference pending explicit tag decision
+## 1.0.0 — 2026-08-31 — Stable research reference
 
 - formalized the six-symbol public Python API and two-command CLI contract;
 - added five Draft 2020-12 schemas for normalized input and evaluation evidence;
@@ -18,5 +18,9 @@ Versioning for the stable surface defined in `COMPATIBILITY.md`.
 - preserved explicit non-claims for production performance, readiness, compliance,
   certification and autonomous containment.
 
-No `v1.0.0` tag, GitHub Release, package publication or deployment is created by the
-source hardening change.
+- owner-authorized `v1.0.0` tag and GitHub Release publication after exact-main-SHA
+  gates, with immutable existing tags and fail-closed API/permission handling;
+- publication regression tests and a narrowly scoped GitHub release policy.
+
+Package-index publication, container publication, deployment and independent review
+are not authorized or established by this release approval.
