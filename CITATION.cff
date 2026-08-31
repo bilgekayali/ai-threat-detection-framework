@@ -9,6 +9,7 @@ repository-code: "https://github.com/bilgekayali/ai-threat-detection-framework"
 url: "https://github.com/bilgekayali/ai-threat-detection-framework"
 license: MIT
 version: 1.0.0
+date-released: 2026-08-31
 keywords:
   - cybersecurity
   - threat detection

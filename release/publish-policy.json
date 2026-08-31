@@ -1,0 +1,13 @@
+{
+  "schema_version": "github-release-policy.v1",
+  "repository": "bilgekayali/ai-threat-detection-framework",
+  "authorized": true,
+  "release_version": "1.0.0",
+  "release_title": "AI-Augmented Threat Detection Framework v1.0.0 — Stable Research Reference",
+  "notes_path": "release/v1.0.0-notes.md",
+  "required_workflows": {
+    ".github/workflows/ci.yml": "CI",
+    ".github/workflows/codeql.yml": "CodeQL",
+    ".github/workflows/stable-release.yml": "Stable Release Gate"
+  }
+}
