@@ -21,7 +21,7 @@ This repository is a public research reference. It contains no customer data, ba
 configuration, detection rule or production architecture. Scores are intended to
 support human triage, never autonomous containment.
 
-## Why this project exists
+## Summary
 
 Security teams need more than a model prediction. They need to know which observable
 signals influenced a score, how performance was measured and whether the evidence can
