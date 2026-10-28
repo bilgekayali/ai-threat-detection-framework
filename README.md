@@ -27,7 +27,7 @@ support human triage, never autonomous containment.
 
 **Reference solution:** Python rule and supervised-model scoring on synthetic alerts, with reason codes, chronological evaluation and reproducible evidence artefacts.
 
-**Inspect the work:** [Scoring code](src/ai_threat_detection/scoring.py) · [Automated tests](tests/) · [Methodology](docs/METHODOLOGY.md) · [Quickstart](README.md#quickstart).
+**Inspect the work:** [Two-minute reviewer walkthrough](docs/RECRUITER_WALKTHROUGH.md) · [Scoring code](src/ai_threat_detection/scoring.py) · [Automated tests](tests/) · [Methodology](docs/METHODOLOGY.md) · [Quickstart](README.md#quickstart).
 
 **Status and limits:** v1.0.0 **stable research reference**. This is not a validated production detector; synthetic-data results do not establish real-world efficacy or permission for autonomous containment.
 
