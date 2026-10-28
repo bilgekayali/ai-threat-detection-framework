@@ -21,16 +21,6 @@ This repository is a public research reference. It contains no customer data, ba
 configuration, detection rule or production architecture. Scores are intended to
 support human triage, never autonomous containment.
 
-## Executive overview — 30 seconds
-
-**Problem:** Security analysts need interpretable prioritisation with traceable inputs, rather than unexplained model predictions.
-
-**Reference solution:** Python rule and supervised-model scoring on synthetic alerts, with reason codes, chronological evaluation and reproducible evidence artefacts.
-
-**Inspect the work:** [Two-minute reviewer walkthrough](docs/RECRUITER_WALKTHROUGH.md) · [Scoring code](src/ai_threat_detection/scoring.py) · [Automated tests](tests/) · [Methodology](docs/METHODOLOGY.md) · [Quickstart](README.md#quickstart).
-
-**Status and limits:** v1.0.0 **stable research reference**. This is not a validated production detector; synthetic-data results do not establish real-world efficacy or permission for autonomous containment.
-
 ## Summary
 
 Security teams need more than a model prediction. They need to know which observable
